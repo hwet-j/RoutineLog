@@ -34,6 +34,7 @@ jobs:
           npx tsc --noEmit
           npx eslint .
           for tz in Asia/Seoul America/Los_Angeles UTC; do TZ=$tz npx jest; done
+          python3 -m unittest tests.provider.test_provider tests.provider.test_parity
 
       - name: Generate native Android project (CNG)
         run: npx expo prebuild --platform android --no-install
