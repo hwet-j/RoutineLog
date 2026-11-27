@@ -65,3 +65,14 @@ export const fmtTimeKo = (t: string) => {
   const h = +t.slice(0, 2);
   return `${h < 12 ? '오전' : '오후'} ${h % 12 === 0 ? 12 : h % 12}:${t.slice(3, 5)}`;
 };
+
+/**
+ * "논리적 지금": 하루 시작 시각 이전이면 전날로 치고, 시각은 24시간을 넘겨 표기한다(예: 새벽 2시 → 오늘='어제', time='26:00').
+ * dayPlan 등 시각 비교(toMin)가 그대로 동작한다.
+ */
+export function logicalNow(now: Date, dayStart = '00:00'): { today: string; time: string } {
+  const today = logicalToday(now, dayStart);
+  const shifted = today !== ymd(now);
+  const h = now.getHours() + (shifted ? 24 : 0);
+  return { today, time: `${pad(h)}:${pad(now.getMinutes())}` };
+}

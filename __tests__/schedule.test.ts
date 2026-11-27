@@ -1,4 +1,4 @@
-import { dayPlan, daysToBits, bitsToDays, isDueOn, pickSlot, progress, weekDoneDays } from '../src/lib/schedule';
+import { bitsToDays, dayPlan, daysToBits, isDueOn, pickSlot, progress, scheduleText, weekDoneDays } from '../src/lib/schedule';
 import { log, routine, time } from './helpers';
 
 test('daily / 시작·종료일', () => {
@@ -91,4 +91,14 @@ test('비서가 슬롯을 생략했을 때 고르는 슬롯', () => {
   expect(pickSlot(slots, new Set(['13:00']), '14:00')).toBe('08:00');
   expect(pickSlot(slots, new Set(), '06:00')).toBe('08:00');
   expect(pickSlot(slots, new Set(slots), '14:00')).toBeNull();
+});
+
+test('루틴 한 줄 요약', () => {
+  expect(scheduleText(routine(), [time('08:00'), time('21:00')])).toBe('매일 · 08:00, 21:00');
+  expect(scheduleText(routine({ schedule: 'weekdays', weekdays: 31 }), [])).toBe('평일');
+  expect(scheduleText(routine({ schedule: 'weekdays', weekdays: 96 }), [])).toBe('주말');
+  expect(scheduleText(routine({ schedule: 'weekdays', weekdays: 1 + 4 + 16 }), [time('09:00')])).toBe('월·수·금 · 09:00');
+  expect(scheduleText(routine({ schedule: 'interval', interval_days: 3 }), [])).toBe('3일마다');
+  expect(scheduleText(routine({ kind: 'habit', schedule: 'weekly_count', weekly_count: 3 }), [])).toBe('주 3회');
+  expect(scheduleText(routine({ kind: 'habit', daily_target: 8 }), [time('10:00')])).toBe('매일 · 하루 8번');
 });

@@ -116,3 +116,16 @@ export function pickSlot(slots: string[], doneSlots: Set<string>, nowHHMM: strin
 }
 
 export const slotInstant = (date: string, slot: string) => at(date, slot);
+
+const KO = ['월', '화', '수', '목', '금', '토', '일'];
+/** 루틴 목록용 한 줄 요약: "매일 · 오전 8:00, 오후 9:00" */
+export function scheduleText(r: Routine, times: RoutineTime[]): string {
+  const when =
+    r.schedule === 'daily' ? '매일'
+    : r.schedule === 'weekdays' ? (r.weekdays === 127 ? '매일' : r.weekdays === 31 ? '평일' : r.weekdays === 96 ? '주말' : bitsToDays(r.weekdays).map((i) => KO[i]).join('·'))
+    : r.schedule === 'interval' ? `${r.interval_days ?? 1}일마다`
+    : `주 ${r.weekly_count ?? 1}회`;
+  const tm = times.filter((x) => x.routine_id === r.id).map((x) => x.time).sort();
+  const tail = r.kind === 'habit' && r.schedule !== 'weekly_count' && r.daily_target > 1 ? `하루 ${r.daily_target}번` : tm.length ? tm.join(', ') : '';
+  return tail ? `${when} · ${tail}` : when;
+}

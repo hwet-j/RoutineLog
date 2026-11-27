@@ -1,4 +1,4 @@
-import { addDays, at, dayDiff, fmtDateKo, fmtTimeKo, isDate, isTime, logicalToday, toMin, fromMin, weekdayBit, weekdayIndex, weekStart, ymd } from '../src/lib/dates';
+import { addDays, at, dayDiff, fmtDateKo, fmtTimeKo, fromMin, isDate, isTime, logicalNow, logicalToday, toMin, weekdayBit, weekdayIndex, weekStart, ymd } from '../src/lib/dates';
 
 test('날짜 검증', () => {
   expect(isDate('2026-02-28')).toBe(true);
@@ -50,4 +50,10 @@ test('시각 변환·표기', () => {
   expect(fmtDateKo('2026-11-27')).toBe('11월 27일 (금)');
   expect(ymd(at('2026-11-27', '08:05'))).toBe('2026-11-27');
   expect(at('2026-11-27', '08:05').getHours()).toBe(8);
+});
+
+test('논리적 지금: 새벽은 전날의 연장(26:00 표기)', () => {
+  expect(logicalNow(new Date(2026, 10, 27, 2, 5), '04:00')).toEqual({ today: '2026-11-26', time: '26:05' });
+  expect(logicalNow(new Date(2026, 10, 27, 9, 5), '04:00')).toEqual({ today: '2026-11-27', time: '09:05' });
+  expect(logicalNow(new Date(2026, 10, 27, 0, 30))).toEqual({ today: '2026-11-27', time: '00:30' });
 });
