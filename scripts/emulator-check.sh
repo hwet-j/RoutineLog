@@ -18,8 +18,10 @@ if adb shell pidof "$PKG" >/dev/null 2>&1; then check "앱이 실행 중" ok; el
 
 # ② 치명적 오류
 adb logcat -d > /tmp/logcat.txt
-if grep -E "FATAL EXCEPTION|UnsatisfiedLinkError|VerifyError|Process: $PKG.*crash" /tmp/logcat.txt >/dev/null; then
-  check "치명적 오류 없음" fail "$(grep -E 'FATAL EXCEPTION|UnsatisfiedLinkError|VerifyError' /tmp/logcat.txt | head -3)"
+# 에뮬레이터 시스템 모듈(NativeCrashHandlerImpl 등)이 내는 무관한 로그는 제외한다
+FATAL_RE='FATAL EXCEPTION|UnsatisfiedLinkError|VerifyError|Process: '"$PKG"'.*crash'
+if grep -E "$FATAL_RE" /tmp/logcat.txt | grep -v "NativeCrashHandlerImpl" >/dev/null; then
+  check "치명적 오류 없음" fail "$(grep -E "$FATAL_RE" /tmp/logcat.txt | grep -v NativeCrashHandlerImpl | head -3)"
 else check "치명적 오류 없음" ok; fi
 
 # ③ 제공자 호출자 검사 (셸 uid 는 com.hwetj.assistant 가 아니므로 forbidden)
