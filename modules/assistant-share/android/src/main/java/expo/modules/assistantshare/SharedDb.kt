@@ -233,7 +233,7 @@ object SharedDb {
       SQLiteCursor(driver, editTable, q)
     }
     val out = ArrayList<Map<String, Any?>>()
-    d.rawQueryWithFactory(factory, sql, null, null).use { c ->
+    d.rawQueryWithFactory(factory, sql, null, "").use { c ->
       val names = c.columnNames
       while (c.moveToNext()) {
         val row = LinkedHashMap<String, Any?>(names.size)
