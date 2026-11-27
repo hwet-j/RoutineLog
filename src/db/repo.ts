@@ -1,4 +1,4 @@
-import type { SQLiteDatabase } from 'expo-sqlite';
+import type { Database as SQLiteDatabase } from './native';
 
 import { uid } from '../lib/id';
 import type { Backup } from '../lib/backup';

@@ -7,9 +7,22 @@ SQL 문자열이 어긋나지 않는지는 `tests.provider.test_parity` 가 검�
 
 - authority `com.hwetj.routinelog.assistant`, `ContentResolver.call(Uri("content://com.hwetj.routinelog.assistant"), method, argJson, null)`
 - 호출자: `getCallingPackage() == "com.hwetj.assistant"` (null 이면 호출 uid 의 패키지 목록에 포함) 아니면 `forbidden`
-- DB: `<filesDir>/SQLite/routinelog.db` (expo-sqlite 와 같은 파일). 없거나 테이블이 없으면 `no_db`
-- 응답 Bundle: 성공 `json`+`ts`, 실패 `error`+`message`. 오류 코드: `forbidden no_db unknown_method invalid ambiguous not_found already_done db_error unavailable`
+- DB: `<filesDir>/SQLite/routinelog.db`. 없거나 테이블이 없으면 `no_db`. **앱 JS 와 제공자는 `SharedDb`(Kotlin 싱글턴)의 같은 SQLite 연결 하나를 공유한다** (아래 "하나의 연결" 절)
+- 응답 Bundle: 성공 `json`+`ts`, 실패 `error`+`message`. 오류 코드: `forbidden no_db unknown_method invalid ambiguous not_found already_done busy db_error unavailable`
 - ContentProvider 본연의 query/insert/update/delete/getType 은 null/0 (다른 경로 없음)
+
+## 하나의 연결 (DB 손상 방지)
+한 프로세스에서 SQLite 라이브러리가 둘(앱에 번들된 expo-sqlite + 안드로이드 시스템 것)이면 POSIX 잠금(fcntl)이 서로를 풀어 `database disk image is malformed` 가 생긴다
+(어느 한쪽이 같은 파일의 fd 를 close() 하면 프로세스의 모든 잠금이 풀림). 그래서
+- 앱은 expo-sqlite 를 쓰지 않는다. `RoutineDbModule`(JS 래퍼 `src/db/native.ts`)이 `SharedDb` 의 연결로 SQL 을 실행한다.
+- 제공자도 `SharedDb` 를 쓴다. 연결은 프로세스 수명 동안 하나이고 절대 닫지 않는다. WAL 은 쓰지 않는다(기본 저널, 단일 연결).
+- 모든 DB 작업은 단일 스레드 실행기에서 하고, 하나의 `Semaphore` 가 "누가 DB 를 쓰는가"를 정한다. JS 트랜잭션은 `txBegin`(BEGIN IMMEDIATE)부터 `txEnd`(COMMIT/ROLLBACK)까지 잠금을 쥐고,
+  제공자의 작업은 같은 잠금 안에서 돌아서 JS 트랜잭션 도중에 끼어들지 못한다. 잠금을 못 얻으면(10초) `busy`. 트랜잭션은 60초 안전장치가 있다.
+- 시작할 때 `PRAGMA quick_check`. 실패하면 파일(+ -wal/-shm/-journal)을 `routinelog.db.corrupt-<시각>` 로 **이름만 바꿔 보존**하고 새 DB 를 만든다(앱이 안내, 설정에서 삭제 가능).
+  예전 expo-sqlite 가 WAL 로 만든 파일은 열 때 기본 저널로 되돌리며 `-wal` 내용을 합친다(같은 파일을 이어서 쓴다).
+
+## ping (DB 를 열지 않는 상태 확인)
+`ping` → `{ok:true, db:<DB 파일 존재>, recovered:<이번 실행에서 손상 복구 여부>, version}`. 호출자 검사 후 바로 응답하며 DB 를 건드리지 않는다. 비서 앱의 "연동 앱" 탭이 자주 부르는 용도.
 
 ## 스키마 수정 (앱도 같은 DDL 을 써야 한다)
 스펙의 `logs_slot` 표현식 인덱스는 같은 밀리초의 습관 로그 2건을 UNIQUE 위반으로 막고 SQLite 3.9+ 가 필요하다.

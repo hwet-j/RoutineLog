@@ -1,6 +1,11 @@
 {
-  "platforms": ["android"],
+  "platforms": [
+    "android"
+  ],
   "android": {
-    "modules": ["expo.modules.assistantshare.AssistantShareModule"]
+    "modules": [
+      "expo.modules.assistantshare.AssistantShareModule",
+      "expo.modules.assistantshare.RoutineDbModule"
+    ]
   }
 }

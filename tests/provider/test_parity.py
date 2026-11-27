@@ -64,7 +64,14 @@ class Parity(unittest.TestCase):
         self.assertIn('android:authorities="com.hwetj.routinelog.assistant"', manifest)
         self.assertIn('android:exported="true"', manifest)
         provider = open(os.path.join(base, "java", "expo", "modules", "assistantshare", "AssistantShareProvider.kt"), encoding="utf-8").read()
-        self.assertIn('"SQLite/routinelog.db"', provider)
+        shared = open(os.path.join(base, "java", "expo", "modules", "assistantshare", "SharedDb.kt"), encoding="utf-8").read()
+        # DB 파일 이름은 SharedDb(앱 JS 와 제공자가 같이 쓰는 연결)에 한 번만 있고, 앱의 DB_NAME 과 같아야 한다
+        self.assertIn('const val DB_FILE = "routinelog.db"', shared)
+        self.assertIn('"SQLite/$DB_FILE"', shared)
+        self.assertNotIn("openDatabase", provider)  # 제공자는 자기 연결을 열지 않는다
+        app_db = open(os.path.join(base, "..", "..", "..", "..", "..", "src", "db", "index.ts"), encoding="utf-8").read()
+        self.assertIn("DB_NAME = 'routinelog.db'", app_db)
+        self.assertIn('if (method == "ping") return ping(ctx)', provider)
         self.assertIn('const val ALLOWED = "com.hwetj.assistant"', provider)
         self.assertIn('setOf("query", "log", "undo")', provider)
 

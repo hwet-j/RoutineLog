@@ -1,8 +1,4 @@
-export const PRAGMAS = `
-PRAGMA journal_mode = WAL;
-PRAGMA busy_timeout = 3000;
-PRAGMA foreign_keys = ON;
-`;
+// journal_mode·busy_timeout·foreign_keys 는 네이티브 모듈(SharedDb)이 연결을 열 때 설정한다
 
 export const SCHEMA_VERSION = 2;
 

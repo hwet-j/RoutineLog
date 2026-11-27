@@ -3,7 +3,7 @@ name: Build Android APK
 on:
   workflow_dispatch:
   push:
-    branches: [main, 'feat/**', 'ccr-*']
+    branches: [main, 'feat/**', 'fix/**', 'ccr-*']
     paths-ignore: ['docs/**', '*.md']
 
 permissions:

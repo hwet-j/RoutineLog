@@ -1,9 +1,9 @@
 import * as Haptics from 'expo-haptics';
-import type { SQLiteDatabase } from 'expo-sqlite';
+import type { Database as SQLiteDatabase } from './db/native';
 import React, { createContext, useCallback, useContext, useEffect, useMemo, useRef, useState } from 'react';
-import { AppState, Platform } from 'react-native';
+import { Alert, AppState, Platform } from 'react-native';
 
-import { getDb } from './db';
+import { getDb, getRecovery } from './db';
 import { deleteLog, deleteRoutine, insertRoutine, kvGet, kvSet, loadAll, restoreLog, setArchived, upsertLog, type LogInput } from './db/repo';
 import { DEFAULT_STYLE, isStyle } from './lib/channels';
 import { logicalNow, ymd } from './lib/dates';
@@ -68,8 +68,18 @@ export function RoutineProvider({ children }: { children: React.ReactNode }) {
 
   const { today, time: nowTime } = useMemo(() => logicalNow(now, settings.dayStart), [now, settings.dayStart]);
 
+  const recoveryShown = useRef(false);
+
   const load = useCallback(async () => {
     const db = await getDb();
+    const rec = getRecovery();
+    if (rec && !recoveryShown.current) {
+      recoveryShown.current = true;
+      Alert.alert(
+        '데이터베이스를 새로 시작했어요',
+        '이전 데이터 파일이 손상되어 열 수 없었어요. 지우지 않고 따로 보존해 뒀어요(설정 → 백업·데이터 화면에서 확인·삭제). 백업 파일이 있다면 같은 화면에서 복원할 수 있어요.',
+      );
+    }
     const [dayStart, style, nag, exact] = await Promise.all([kvGet(db, 'day_start'), kvGet(db, 'notify_style_default'), kvGet(db, 'nag_default'), kvGet(db, 'exact_alarm')]);
     const s: Settings = {
       dayStart: dayStart && /^\d{2}:\d{2}$/.test(dayStart) ? dayStart : DEFAULTS.dayStart,
