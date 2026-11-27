@@ -1,0 +1,50 @@
+{
+  "expo": {
+    "name": "RoutineLog",
+    "slug": "routinelog",
+    "scheme": "routinelog",
+    "version": "1.0.0",
+    "orientation": "portrait",
+    "icon": "./assets/icon.png",
+    "userInterfaceStyle": "automatic",
+    "newArchEnabled": true,
+    "ios": {
+      "supportsTablet": false,
+      "bundleIdentifier": "com.hwetj.routinelog"
+    },
+    "android": {
+      "package": "com.hwetj.routinelog",
+      "adaptiveIcon": {
+        "backgroundColor": "#6D28D9",
+        "foregroundImage": "./assets/android-icon-foreground.png",
+        "backgroundImage": "./assets/android-icon-background.png",
+        "monochromeImage": "./assets/android-icon-monochrome.png"
+      },
+      "predictiveBackGestureEnabled": false,
+      "permissions": [
+        "android.permission.POST_NOTIFICATIONS",
+        "android.permission.VIBRATE",
+        "android.permission.SCHEDULE_EXACT_ALARM",
+        "android.permission.USE_EXACT_ALARM"
+      ]
+    },
+    "plugins": [
+      "expo-router",
+      "expo-sqlite",
+      [
+        "expo-notifications",
+        {
+          "color": "#6D28D9"
+        }
+      ],
+      [
+        "expo-splash-screen",
+        {
+          "backgroundColor": "#6D28D9",
+          "image": "./assets/splash-icon.png",
+          "imageWidth": 200
+        }
+      ]
+    ]
+  }
+}
