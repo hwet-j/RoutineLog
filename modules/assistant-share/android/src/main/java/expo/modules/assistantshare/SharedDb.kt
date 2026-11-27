@@ -4,6 +4,7 @@ import android.content.Context
 import android.database.Cursor
 import android.database.sqlite.SQLiteCursor
 import android.database.sqlite.SQLiteCursorDriver
+import android.database.DatabaseErrorHandler
 import android.database.sqlite.SQLiteDatabase
 import android.database.sqlite.SQLiteException
 import android.database.sqlite.SQLiteQuery
@@ -99,7 +100,8 @@ object SharedDb {
   private fun tryOpen(f: File): SQLiteDatabase? {
     var d: SQLiteDatabase? = null
     return try {
-      d = SQLiteDatabase.openDatabase(f.path, null, SQLiteDatabase.OPEN_READWRITE or SQLiteDatabase.CREATE_IF_NECESSARY)
+      // 기본 오류 처리기(DefaultDatabaseErrorHandler)는 손상을 만나면 **파일을 삭제**한다. 지우지 않고 우리가 보존하도록 아무것도 하지 않는 처리기를 쓴다.
+      d = SQLiteDatabase.openDatabase(f.path, null, SQLiteDatabase.OPEN_READWRITE or SQLiteDatabase.CREATE_IF_NECESSARY, DatabaseErrorHandler { })
       d.disableWriteAheadLogging() // 연결 풀(읽기 전용 추가 연결) 없이 단일 연결, 호환 WAL 도 끈다
       // 예전 expo-sqlite 가 WAL 로 만든 파일이면 기본 저널로 되돌리며 -wal 내용을 본 파일에 합친다
       d.rawQuery("PRAGMA journal_mode", null).use { c -> if (c.moveToFirst() && c.getString(0).equals("wal", true)) d.rawQuery("PRAGMA journal_mode=DELETE", null).use { it.moveToFirst() } }
