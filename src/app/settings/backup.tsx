@@ -1,12 +1,12 @@
 import * as DocumentPicker from 'expo-document-picker';
 import { File, Paths } from 'expo-file-system';
 import * as Sharing from 'expo-sharing';
-import React, { useState } from 'react';
+import React, { useEffect, useState } from 'react';
 import { Alert, ScrollView, Text } from 'react-native';
 import { useSafeAreaInsets } from 'react-native-safe-area-context';
 
 import { Button, Card } from '../../components/ui';
-import { getDb } from '../../db';
+import { deleteCorruptFile, getDb, listCorruptFiles } from '../../db';
 import { allLogs, restoreBackup, wipeAll } from '../../db/repo';
 import { makeBackup, parseBackup } from '../../lib/backup';
 import { logsCsv } from '../../lib/csv';
@@ -28,6 +28,10 @@ export default function BackupScreen() {
   const { routines, times, mutate, refresh } = useRoutines();
   const [busy, setBusy] = useState(false);
   const stamp = ymd(new Date());
+  const [corrupt, setCorrupt] = useState<{ name: string; bytes: number }[]>([]);
+  useEffect(() => {
+    listCorruptFiles().then(setCorrupt).catch(() => {});
+  }, []);
   const run = async (fn: () => Promise<void>) => {
     setBusy(true);
     try { await fn(); } catch (e) { Alert.alert('실패했어요', e instanceof Error ? e.message : String(e)); } finally { setBusy(false); }
@@ -69,6 +73,24 @@ export default function BackupScreen() {
         <Text style={{ color: t.sub, lineHeight: 19 }}>루틴 {routines.length}개가 저장돼 있어요.</Text>
         <Button title="모든 데이터 지우기" kind="danger" onPress={wipe} disabled={busy} />
       </Card>
+      {corrupt.length > 0 && (
+        <Card style={{ gap: 10 }}>
+          <Text style={{ fontWeight: '800', fontSize: 16, color: t.text }}>손상되어 보존된 데이터 파일</Text>
+          <Text style={{ color: t.sub, lineHeight: 19 }}>앱이 열 수 없던 이전 데이터 파일이에요. 지우지 않고 보관해 뒀어요. 필요 없으면 삭제하세요.</Text>
+          {corrupt.map((f) => (
+            <Button
+              key={f.name}
+              title={`삭제 · ${f.name.replace('routinelog.db.corrupt-', '')} (${Math.max(1, Math.round(f.bytes / 1024))}KB)`}
+              icon="trash-outline"
+              onPress={() => Alert.alert('이 파일을 삭제할까요?', '되돌릴 수 없어요.', [
+                { text: '취소', style: 'cancel' },
+                { text: '삭제', style: 'destructive', onPress: () => run(async () => { await deleteCorruptFile(f.name); setCorrupt(await listCorruptFiles()); }) },
+              ])}
+              disabled={busy}
+            />
+          ))}
+        </Card>
+      )}
     </ScrollView>
   );
 }

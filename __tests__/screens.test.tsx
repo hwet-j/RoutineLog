@@ -44,7 +44,6 @@ jest.mock('expo-router', () => ({
 }));
 jest.mock('react-native-safe-area-context', () => ({ useSafeAreaInsets: () => ({ top: 0, bottom: 0, left: 0, right: 0 }), SafeAreaProvider: ({ children }: { children: React.ReactNode }) => children }));
 jest.mock('expo-haptics', () => ({ impactAsync: jest.fn(), ImpactFeedbackStyle: { Light: 'light' } }));
-jest.mock('expo-sqlite', () => ({}));
 jest.mock('expo-file-system', () => ({ File: class {}, Paths: { cache: '' } }));
 jest.mock('expo-sharing', () => ({}));
 jest.mock('expo-document-picker', () => ({}));
@@ -55,7 +54,7 @@ jest.mock('expo-notifications', () => ({
   scheduleNotificationAsync: jest.fn(), cancelScheduledNotificationAsync: jest.fn(), dismissNotificationAsync: jest.fn(),
   AndroidImportance: { HIGH: 4, LOW: 2 }, AndroidNotificationVisibility: { PUBLIC: 1, PRIVATE: 2 }, SchedulableTriggerInputTypes: { DATE: 'date', TIME_INTERVAL: 'timeInterval' },
 }));
-jest.mock('../src/db', () => ({ getDb: async () => ({}) }));
+jest.mock('../src/db', () => ({ getDb: async () => ({}), getRecovery: () => null, listCorruptFiles: async () => [], deleteCorruptFile: async () => true }));
 jest.mock('../src/db/repo', () => ({ listLogs: async () => mockLogs(), allLogs: async () => mockLogs(), duplicateRoutine: jest.fn(), insertRoutine: jest.fn(), updateRoutine: jest.fn(), updateLog: jest.fn(), upsertLog: jest.fn(), restoreBackup: jest.fn(), wipeAll: jest.fn() }));
 const mockLogs = () => L;
 jest.mock('@react-native-community/datetimepicker', () => 'DateTimePicker');
