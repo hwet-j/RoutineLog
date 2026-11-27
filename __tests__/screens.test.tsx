@@ -69,6 +69,9 @@ const render = async (el: React.ReactElement) => {
 const collect = (n: unknown): string => (n == null ? '' : typeof n === 'string' ? n : Array.isArray(n) ? n.map(collect).join('') : collect((n as { children?: unknown }).children));
 const text = (r: renderer.ReactTestRenderer) => collect(r.toJSON());
 
+// 첫 테스트는 화면과 RN 모듈을 처음 불러오느라 느린 CI 러너에서 5초를 넘길 수 있다
+jest.setTimeout(60_000);
+
 beforeAll(() => { jest.useFakeTimers().setSystemTime(new Date(2026, 10, 27, 12)); });
 afterAll(() => { jest.useRealTimers(); });
 beforeEach(() => { mockParams = {}; });
