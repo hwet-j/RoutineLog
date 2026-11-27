@@ -37,7 +37,8 @@ CREATE TABLE IF NOT EXISTS logs(
   logged_at TEXT NOT NULL,
   source TEXT NOT NULL DEFAULT 'app' CHECK(source IN ('app','assistant','notification')),
   source_ref TEXT UNIQUE);
-CREATE UNIQUE INDEX IF NOT EXISTS logs_slot ON logs(routine_id, date, COALESCE(slot,''), CASE WHEN slot IS NULL THEN logged_at ELSE '' END);
+-- 복약 슬롯은 하루 1건(중복 체크 방지), 습관(slot NULL)은 여러 건 허용. 비서 제공자 쪽 스키마와 같다
+CREATE UNIQUE INDEX IF NOT EXISTS logs_slot ON logs(routine_id, date, slot) WHERE slot IS NOT NULL;
 CREATE INDEX IF NOT EXISTS logs_date ON logs(date DESC);
 CREATE INDEX IF NOT EXISTS logs_routine ON logs(routine_id, date);
 CREATE INDEX IF NOT EXISTS times_routine ON routine_times(routine_id);
