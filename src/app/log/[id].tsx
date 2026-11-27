@@ -53,7 +53,7 @@ export default function LogForm() {
         if (existing) {
           await updateLog(db, existing.id, { status, count: isHabit ? count : 1, value: num, note: note.trim() || null, date, ...(loggedAt ? { logged_at: loggedAt } : {}) });
         } else {
-          await upsertLog(db, { routine_id: r.id, date, slot: isHabit ? null : slot, status, count: isHabit ? count : 1, value: num, note: note.trim() || null, logged_at: loggedAt, source: 'app' });
+          await upsertLog(db, { routine_id: r.id, date, slot: isHabit ? null : slot, status, count: isHabit ? count : 1, value: num, note: note.trim() || null, logged_at: loggedAt, source: 'app', replaceExisting: !isHabit });
         }
       });
       if (!isHabit && slot) void cancelSlot(r.id, date, slot);

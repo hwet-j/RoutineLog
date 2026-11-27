@@ -4,7 +4,13 @@ PRAGMA busy_timeout = 3000;
 PRAGMA foreign_keys = ON;
 `;
 
-export const SCHEMA_VERSION = 1;
+export const SCHEMA_VERSION = 2;
+
+/** v1→v2: 슬롯 유니크 인덱스를 부분 인덱스로 교체 (같은 밀리초의 습관 로그가 충돌하지 않게. 비서 제공자와 같은 정의) */
+export const MIGRATE_V2 = `
+DROP INDEX IF EXISTS logs_slot;
+CREATE UNIQUE INDEX IF NOT EXISTS logs_slot ON logs(routine_id, date, slot) WHERE slot IS NOT NULL;
+`;
 
 /** 스펙(/docs/provider-sql.md 와 비서 제공자)과 같은 스키마. 바꾸면 제공자도 같이 바꿔야 한다 */
 export const SCHEMA_V1 = `

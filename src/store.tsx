@@ -152,7 +152,7 @@ export function RoutineProvider({ children }: { children: React.ReactNode }) {
 
   const checkSlot = useCallback<Ctx['checkSlot']>(async (r, date, slot, status = 'done', opts) => {
     const prev = snap.logs.find((l) => l.routine_id === r.id && l.date === date && (l.slot ?? null) === slot && r.kind !== 'habit');
-    const input: LogInput = { routine_id: r.id, date, slot, status, note: opts?.note ?? prev?.note ?? null, source: opts?.source ?? 'app', logged_at: opts?.loggedAt };
+    const input: LogInput = { routine_id: r.id, date, slot, status, note: opts?.note ?? prev?.note ?? null, source: opts?.source ?? 'app', logged_at: opts?.loggedAt, replaceExisting: r.kind !== 'habit' };
     const id = await mutate((db) => upsertLog(db, input));
     if (slot) void cancelSlot(r.id, date, slot);
     void tap();

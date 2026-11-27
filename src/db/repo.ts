@@ -89,13 +89,15 @@ export interface LogInput {
   source?: LogSource;
   source_ref?: string | null;
   logged_at?: string;
+  /** 복약·영양제처럼 하루 1건만 허용(시각이 없는 슬롯 포함): 이미 있으면 갱신한다 */
+  replaceExisting?: boolean;
 }
 
 /** 로그 한 건 추가. 복약 슬롯이 이미 체크돼 있으면(unique) 그 로그를 갱신한다 */
 export async function upsertLog(db: SQLiteDatabase, l: LogInput, now: Date = new Date()): Promise<string> {
   const loggedAt = l.logged_at ?? now.toISOString();
-  if (l.slot !== null) {
-    const ex = await db.getFirstAsync<{ id: string }>('SELECT id FROM logs WHERE routine_id = ? AND date = ? AND slot = ?', l.routine_id, l.date, l.slot);
+  if (l.slot !== null || l.replaceExisting) {
+    const ex = await db.getFirstAsync<{ id: string }>('SELECT id FROM logs WHERE routine_id = ? AND date = ? AND slot IS ?', l.routine_id, l.date, l.slot);
     if (ex) {
       await db.runAsync('UPDATE logs SET status = ?, count = ?, value = ?, note = ?, logged_at = ?, source = ? WHERE id = ?', l.status, l.count ?? 1, l.value ?? null, l.note ?? null, loggedAt, l.source ?? 'app', ex.id);
       return ex.id;

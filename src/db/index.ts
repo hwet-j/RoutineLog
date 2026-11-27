@@ -1,6 +1,6 @@
 import * as SQLite from 'expo-sqlite';
 
-import { PRAGMAS, SCHEMA_V1, SCHEMA_VERSION } from './schema';
+import { MIGRATE_V2, PRAGMAS, SCHEMA_V1, SCHEMA_VERSION } from './schema';
 
 export const DB_NAME = 'routinelog.db';
 
@@ -28,6 +28,11 @@ async function migrate(db: SQLite.SQLiteDatabase) {
   if (v < 1) {
     await db.withExclusiveTransactionAsync(async (tx) => {
       await tx.execAsync(SCHEMA_V1);
+    });
+    await db.execAsync(`PRAGMA user_version = ${SCHEMA_VERSION}`);
+  } else if (v < 2) {
+    await db.withExclusiveTransactionAsync(async (tx) => {
+      await tx.execAsync(MIGRATE_V2);
     });
     await db.execAsync(`PRAGMA user_version = ${SCHEMA_VERSION}`);
   }
