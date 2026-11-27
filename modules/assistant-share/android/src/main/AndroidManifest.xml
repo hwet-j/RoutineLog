@@ -1,0 +1,10 @@
+<manifest xmlns:android="http://schemas.android.com/apk/res/android">
+  <application>
+    <!-- AI 비서 앱(com.hwetj.assistant)만 루틴 DB 를 읽고 기록할 수 있는 제공자. 접근 제한은 Provider 코드에서 호출자 패키지로 검사한다. -->
+    <provider
+      android:name=".AssistantShareProvider"
+      android:authorities="com.hwetj.routinelog.assistant"
+      android:exported="true"
+      android:grantUriPermissions="false" />
+  </application>
+</manifest>
